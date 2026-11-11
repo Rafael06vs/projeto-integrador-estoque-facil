@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Estoque Fácil | Projeto Integrador</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static',filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <header>
+      <div class="container header">
+        <div>
+          <h1>📦 Estoque Fácil</h1>
+          <p>Projeto Integrador • Programação Web</p>
+        </div>
+        <span class="tag">Sistema acadêmico</span>
+      </div>
+    </header>
+    <main class="container">
+      <section class="intro">
+        <h2>Controle de estoque</h2>
+        <p>
+          Cadastre produtos, registre entradas e saídas e acompanhe o que
+          precisa de reposição.
+        </p>
+      </section>
+      <div class="stats">
+        <article>
+          <small>Produtos cadastrados</small><strong>{{total}}</strong>
+        </article>
+        <article>
+          <small>Estoque baixo</small><strong>{{baixos}}</strong>
+        </article>
+        <article><small>Banco de dados</small><strong>SQLite</strong></article>
+      </div>
+      {% with mensagens = get_flashed_messages(with_categories=true) %}{% for
+      tipo,mensagem in mensagens %}
+      <div class="aviso {{tipo}}">{{mensagem}}</div>
+      {% endfor %}{% endwith %}
+      <section class="panel">
+        <h3>Adicionar produto</h3>
+        <form action="{{url_for('adicionar')}}" method="post" class="form-grid">
+          <label
+            >Nome do produto<input
+              name="nome"
+              placeholder="Ex.: Arroz 5 kg"
+              maxlength="100"
+              required /></label
+          ><label
+            >Categoria<input
+              name="categoria"
+              placeholder="Ex.: Alimentos"
+              maxlength="60"
+              required /></label
+          ><label
+            >Quantidade inicial<input
+              type="number"
+              name="quantidade"
+              min="0"
+              value="0"
+              required /></label
+          ><label
+            >Estoque mínimo<input
+              type="number"
+              name="minimo"
+              min="0"
+              value="5"
+              required /></label
+          ><button type="submit">+ Cadastrar produto</button>
+        </form>
+      </section>
+      <section class="panel">
+        <div class="section-head">
+          <h3>Produtos</h3>
+          <form method="get">
+            <input
+              name="busca"
+              value="{{busca}}"
+              placeholder="Pesquisar produto..."
+            /><button>Buscar</button>
+          </form>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Categoria</th>
+                <th>Quantidade</th>
+                <th>Status</th>
+                <th>Movimentação</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in produtos %}
+              <tr>
+                <td><b>{{p.nome}}</b></td>
+                <td>{{p.categoria}}</td>
+                <td>{{p.quantidade}}</td>
+                <td>
+                  {% if p.quantidade <= p.minimo %}<span class="low">Repor</span
+                  >{% else %}<span class="good">Normal</span>{% endif %}
+                </td>
+                <td>
+                  <form
+                    class="move"
+                    action="{{url_for('movimentar',produto_id=p.id)}}"
+                    method="post"
+                  >
+                    <select name="tipo">
+                      <option value="entrada">Entrada</option>
+                      <option value="saida">Saída</option></select
+                    ><input
+                      aria-label="Quantidade"
+                      name="quantidade"
+                      type="number"
+                      min="1"
+                      value="1"
+                      required
+                    /><button>Salvar</button>
+                  </form>
+                </td>
+                <td>
+                  <form
+                    action="{{url_for('excluir',produto_id=p.id)}}"
+                    method="post"
+                    onsubmit="
+                      return confirm('Excluir este produto e seu histórico?');
+                    "
+                  >
+                    <button class="danger" title="Excluir">Excluir</button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6" class="empty">
+                  Nenhum produto encontrado. Cadastre o primeiro acima.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="panel">
+        <h3>Últimas movimentações</h3>
+        {% if movimentos %}
+        <ul class="history">
+          {% for m in movimentos %}
+          <li>
+            <span
+              >{{m.nome}} — <b>{{m.tipo}}</b> de {{m.quantidade}}
+              unidade(s)</span
+            ><small>{{m.data}}</small>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">Nenhuma movimentação registrada ainda.</p>
+        {% endif %}
+      </section>
+    </main>
+    <footer>Estoque Fácil · Trabalho acadêmico demonstrativo · 2026</footer>
+  </body>
+</html>
